@@ -1,0 +1,56 @@
+{
+  "variables": {
+  },
+  "builders": [
+    {
+      "type": "docker",
+      "image": "ubuntu:16.04",
+      "commit": true,
+      "run_command": [
+        "-d", "-i", "-t", "{{.Image}}", "/bin/bash"
+      ],
+      "changes": [
+        "ENV LANG en_US.UTF-8",
+        "ENV PATH /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      ]
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "inline": [
+        "mkdir -p /tmp/rcrsvrl/"
+      ]
+    },
+    {
+      "type": "shell",
+      "script": "provisioners/puppet.sh"
+    },
+    {
+      "type": "puppet-masterless",
+      "puppet_bin_dir": "/opt/puppetlabs/bin/",
+      "extra_arguments": "--debug",
+      "staging_directory": "/tmp/rcrsvrl",
+      "manifest_file": "provisioners/rcrsvrl.pp",
+      "module_paths": [
+        "modules"
+      ]
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "rm -rf /tmp/rcrsvrl/"
+      ]
+    }
+  ],
+  "post-processors": [
+    {
+      "type": "docker-tag",
+      "repository": "cliffano/rcrsvrl",
+      "tag": "latest",
+      "only": [
+        "docker"
+      ]
+    }
+  ]
+}
